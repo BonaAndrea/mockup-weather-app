@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
@@ -15,12 +13,19 @@ public class SceneManager : MonoBehaviour
     [SerializeField] private float _lat = 45.062884f, _lon = 7.679101f;
     [SerializeField] private int _hoursToShow = 24;
     [SerializeField] private float _animationSpeed = 0.1f;
+    [SerializeField] private float _iconAnimationDuration = 0.5f;
+    [SerializeField] private float _textAnimationDuration = 0.5f;
     [SerializeField] private TextMeshProUGUI _currentTemperature;
+    private int _currentTempValue;
     [SerializeField] private TextMeshProUGUI _weatherDescription;
     [SerializeField] private TextMeshProUGUI _minMaxTemp;
+    private Vector2 _minMaxTempValue;
     [SerializeField] private TextMeshProUGUI _dateTimeText;
     [SerializeField] private TextMeshProUGUI _feels_like;
+    private int _feelsLikeValue;
+    private int _currentHour;
     [SerializeField] private Image _bigIcon;
+    [SerializeField] private CanvasGroup _bigIconCanvasGroup;
 
     [SerializeField] private WeatherData _weatherData;
 
@@ -37,7 +42,7 @@ public class SceneManager : MonoBehaviour
         Application.targetFrameRate = 60;
         _hourlyIcons = new HourlyIcon[_hoursToShow];
         SetIconsAndText();
-        SetMainIconAndText();
+        SetMainText();
     }
 
     private void InitializeHourWeather()
@@ -46,9 +51,17 @@ public class SceneManager : MonoBehaviour
         if (_content.childCount != _hoursToShow) shouldInstantiate = true;
         int minTemp, maxTemp;
         (minTemp, maxTemp) = GetMinMaxTemp();
-        _minMaxTemp.text = "Massima: " + maxTemp.ToString() + "°C - Minima: " + minTemp.ToString() + "°C";
+        StartCoroutine(ChangeValueOverTime(_minMaxTempValue, new Vector2(minTemp, maxTemp), _textAnimationDuration,
+            (Vector2 value) => _minMaxTemp.text =
+                "Massima: " + value.y.ToString() + "°C - Minima: " + value.x.ToString() + "°C"));
         float temperatureRange = maxTemp - minTemp;
         int currentHour = DateTime.Now.Hour;
+        StartCoroutine(UpdateHourlyIcons(shouldInstantiate, currentHour, minTemp, temperatureRange));
+        
+    }
+
+    private IEnumerator UpdateHourlyIcons(bool shouldInstantiate, int currentHour, int minTemp, float temperatureRange)
+    {
         for (int i = 0; i < _hoursToShow; i++)
         {
             if (shouldInstantiate)
@@ -56,15 +69,24 @@ public class SceneManager : MonoBehaviour
                 _hourlyIcons[i] = Instantiate(_hourWeather, _content).GetComponent<HourlyIcon>();
             }
 
-            _hourlyIcons[i].Hour.text = ((currentHour + i) % 24).ToString("D2") + ":00";
-            _hourlyIcons[i].HourTemp.text = _weatherData.weatherData[i].temperature.ToString() + "°C";
-            StartCoroutine(DownloadImage(CreateSpriteFromTexture, _weatherData.weatherData[i].icon + "@2x.png",
-                    _hourlyIcons[i].Icon));
-            StartCoroutine(UpdateHourlyColumn(_hourlyIcons[i].Column.rectTransform, _weatherData.weatherData[i].temperature, minTemp, temperatureRange));
-            /*var uvRect = _hourlyIcons[i].Column.rectTransform;
-            uvRect.sizeDelta = new Vector2(uvRect.sizeDelta.x,
-                Mathf.Lerp(50, 300, (_weatherData.weatherData[i].temperature - minTemp) / temperatureRange));*/
+            StartCoroutine(UpdateHourlyIconValues(_hourlyIcons[i], ((currentHour + i) % 24),
+                _weatherData.weatherData[i], minTemp, temperatureRange));
+
         }
+
+        yield return null;
+    }
+
+    private IEnumerator UpdateHourlyIconValues(HourlyIcon _hourlyIcon, int newTime, Weather weatherData, int minTemp, float temperatureRange)
+    {
+        StartCoroutine(ChangeValueOverTime(_hourlyIcon.Hour, newTime, _textAnimationDuration, (int value) => _hourlyIcon.HourText.text = value.ToString("D2") + ":00"));
+        //_hourlyIcons[i].HourText.text = ((currentHour + i) % 24).ToString("D2") + ":00";
+        StartCoroutine(ChangeValueOverTime(_hourlyIcon.Temperature, weatherData.temperature, _textAnimationDuration, (int value) => _hourlyIcon.HourTempText.text = value.ToString() + "°C"));
+        StartCoroutine(DownloadImage(CreateSpriteFromTexture, weatherData.icon + "@2x.png",
+            _hourlyIcon.Icon, _hourlyIcon.CanvasGroup));
+        StartCoroutine(UpdateHourlyColumn(_hourlyIcon.Column.rectTransform,
+            weatherData.temperature, minTemp, temperatureRange));
+        yield return null;
     }
     
     private (int minTemp, int maxTemp) GetMinMaxTemp()
@@ -88,7 +110,8 @@ public class SceneManager : MonoBehaviour
         return (minTemp, maxTemp);
     }
 
-    private IEnumerator DownloadImage(Action<Texture2D, Image> callback, string imageUrl, Image spriteToAssign)
+    private IEnumerator DownloadImage(Action<Texture2D, Image, CanvasGroup> callback, string imageUrl,
+        Image spriteToAssign, CanvasGroup canvasGroup)
     {
         imageUrl = _imageUrlPrefix + imageUrl;
         Debug.Log(imageUrl);
@@ -102,11 +125,11 @@ public class SceneManager : MonoBehaviour
         else
         {
             Texture2D texture = DownloadHandlerTexture.GetContent(www);
-            callback(texture, spriteToAssign);
+            callback(texture, spriteToAssign, canvasGroup);
         }
     }
 
-    private void CreateSpriteFromTexture(Texture2D texture, Image spriteToAssign)
+    private void CreateSpriteFromTexture(Texture2D texture, Image spriteToAssign, CanvasGroup canvasGroup)
     {
         if (texture == null)
         {
@@ -115,35 +138,38 @@ public class SceneManager : MonoBehaviour
 
         Sprite sprite = Sprite.Create(texture,
             new Rect(0, 0, texture.width, texture.height), Vector2.zero);
-        spriteToAssign.sprite = sprite;
+        StartCoroutine(ChangeSprite(canvasGroup, spriteToAssign, sprite));
+        //spriteToAssign.sprite = sprite;
     }
 
     void Update()
     {
         _dateTimeText.text = DateTime.Now.ToString("dd MMMM, HH:mm");
     }
-    
+
 
     private void SetIconsAndText()
     {
         InitializeHourWeather();
-        StartCoroutine(DownloadImage(CreateSpriteFromTexture, _weatherData.weatherData[0].icon+"@4x.png", _bigIcon));
+        StartCoroutine(DownloadImage(CreateSpriteFromTexture, _weatherData.weatherData[0].icon + "@4x.png", _bigIcon,
+            _bigIconCanvasGroup));
     }
 
     private IEnumerator SetDownloadedIconsAndText()
     {
         yield return StartCoroutine(GetWeatherData());
-        SetMainIconAndText();
+        SetMainText();
         yield return StartCoroutine(GetHourlyData());
         InitializeHourWeather();
-        StartCoroutine(DownloadImage(CreateSpriteFromTexture, _weatherData.weatherData[0].icon+"@4x.png", _bigIcon));
+        StartCoroutine(DownloadImage(CreateSpriteFromTexture, _weatherData.weatherData[0].icon + "@4x.png", _bigIcon,
+            _bigIconCanvasGroup));
     }
 
-    private void SetMainIconAndText()
+    private void SetMainText()
     {
-        _currentTemperature.text = _weatherData.weatherData[0].temperature.ToString() + "°C";
+        StartCoroutine(ChangeValueOverTime(_currentTempValue, _weatherData.weatherData[0].temperature, _textAnimationDuration, (int value) => _currentTemperature.text = value.ToString() + "°C"));
         _weatherDescription.text = _weatherData.weatherData[0].description;
-        _feels_like.text = "Percepita: " + _weatherData.weatherData[0].feels_like.ToString() + "°C";
+        StartCoroutine(ChangeValueOverTime(_feelsLikeValue, _weatherData.weatherData[0].temperature, _textAnimationDuration, (int value) => _feels_like.text = "Percepita: " + value.ToString() + "°C"));
     }
 
     //EXTRA 1A
@@ -151,9 +177,10 @@ public class SceneManager : MonoBehaviour
     {
         StopAllCoroutines();
         _weatherData.RandomizeValues();
-        SetMainIconAndText();
+        SetMainText();
         SetIconsAndText();
     }
+
     //EXTRA 1B
     public void GetNewValues()
     {
@@ -164,7 +191,8 @@ public class SceneManager : MonoBehaviour
 
     private IEnumerator GetWeatherData()
     {
-        string url = "http://api.openweathermap.org/data/2.5/weather?lat=" + _lat + "&lon=" + _lon + "&appid=" +  _APIKey + "&units=metric&lang=IT";
+        string url = "http://api.openweathermap.org/data/2.5/weather?lat=" + _lat + "&lon=" + _lon + "&appid=" +
+                     _APIKey + "&units=metric&lang=IT";
         UnityWebRequest request = UnityWebRequest.Get(url);
         yield return request.SendWebRequest();
 
@@ -180,7 +208,8 @@ public class SceneManager : MonoBehaviour
             _weatherData.weatherData[0].main = (string)data["weather"][0]["main"];
             _weatherData.weatherData[0].description = data["weather"][0]["description"];
             char firstLetter = _weatherData.weatherData[0].description[0];
-            _weatherData.weatherData[0].description = char.ToUpper(firstLetter) + _weatherData.weatherData[0].description.Substring(1);
+            _weatherData.weatherData[0].description =
+                char.ToUpper(firstLetter) + _weatherData.weatherData[0].description.Substring(1);
             _weatherData.weatherData[0].icon = (string)data["weather"][0]["icon"];
             Debug.Log(_weatherData.weatherData[0].icon);
             _weatherData.weatherData[0].temperature = (int)data["main"]["temp"].AsFloat;
@@ -191,8 +220,9 @@ public class SceneManager : MonoBehaviour
 
     private IEnumerator GetHourlyData()
     {
-        string url = "https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=" + _lat + "&lon=" + _lon + "&appid=" + _APIKey + "&units=metric&lang=IT";
-          UnityWebRequest www = UnityWebRequest.Get(url);
+        string url = "https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=" + _lat + "&lon=" + _lon +
+                     "&appid=" + _APIKey + "&units=metric&lang=IT";
+        UnityWebRequest www = UnityWebRequest.Get(url);
 
         yield return www.SendWebRequest();
 
@@ -214,9 +244,10 @@ public class SceneManager : MonoBehaviour
             }
         }
     }
-    
+
     //EXTRA 2A
-    private IEnumerator UpdateHourlyColumn(RectTransform toModify, float temperature, float minTemp, float temperatureRange)
+    private IEnumerator UpdateHourlyColumn(RectTransform toModify, float temperature, float minTemp,
+        float temperatureRange)
     {
         float fromHeight = toModify.sizeDelta.y;
         float toHeight = Mathf.Lerp(50, 300, (temperature - minTemp) / temperatureRange);
@@ -229,5 +260,62 @@ public class SceneManager : MonoBehaviour
             yield return null;
         }
     }
+
     
+    //EXTRA 2B
+    private IEnumerator ChangeSprite(CanvasGroup cg, Image image, Sprite newSprite)
+    {
+        // Fade out the old sprite
+        float time = 0f;
+        while (time < _iconAnimationDuration)
+        {
+            time += Time.deltaTime;
+            cg.alpha = 1f - time / _iconAnimationDuration;
+            yield return null;
+        }
+
+        // Change the sprite
+        image.sprite = newSprite;
+
+        // Fade in the new sprite
+        time = 0f;
+        while (time < _iconAnimationDuration)
+        {
+            time += Time.deltaTime;
+            cg.alpha = time / _iconAnimationDuration;
+            yield return null;
+        }
+    }
+    
+    private IEnumerator ChangeValueOverTime(int start, int end, float duration, UnityAction<int> updateAction)
+    {
+        float elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            int currentValue = Mathf.RoundToInt(Mathf.Lerp(start, end, elapsedTime / duration));
+            updateAction(currentValue);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        updateAction(end);
+    }
+    private IEnumerator ChangeValueOverTime(Vector2 startValue, Vector2 endValue, float duration, UnityAction<Vector2> updateAction)
+    {float elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            float currentValueX = Mathf.RoundToInt(Mathf.Lerp(startValue.x, endValue.x, elapsedTime / duration));
+            float currentValueY = Mathf.RoundToInt(Mathf.Lerp(startValue.y, endValue.y, elapsedTime / duration));
+            updateAction(new Vector2(currentValueX, currentValueY));
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        updateAction(endValue);
+    }
+
+    
+
+
+
 }

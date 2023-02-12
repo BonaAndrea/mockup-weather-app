@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 323051663}
   - component: {fileID: 323051665}
   - component: {fileID: 323051664}
+  - component: {fileID: 323051666}
   m_Layer: 5
   m_Name: Icon
   m_TagString: Untagged
@@ -199,6 +200,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 323051662}
   m_CullTransparentMesh: 1
+--- !u!225 &323051666
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 323051662}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1445,12 +1458,14 @@ MonoBehaviour:
   _lon: 7.679101
   _hoursToShow: 24
   _animationSpeed: 2
+  _iconAnimationDuration: 0.5
   _currentTemperature: {fileID: 1799158008}
   _weatherDescription: {fileID: 1311451754}
   _minMaxTemp: {fileID: 2094266261}
   _dateTimeText: {fileID: 1687072153}
   _feels_like: {fileID: 1385319172}
   _bigIcon: {fileID: 323051664}
+  _bigIconCanvasGroup: {fileID: 323051666}
   _weatherData: {fileID: 11400000, guid: e934bf078d706c843aa702db72eb43d1, type: 2}
   _content: {fileID: 739558575}
   _hourWeather: {fileID: 1349375767740696246, guid: d8d2b969b7684364f89a4cf1b92494b8, type: 3}

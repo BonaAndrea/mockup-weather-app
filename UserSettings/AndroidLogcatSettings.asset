@@ -3,7 +3,7 @@
     "m_SelectedPackage": {
         "deviceId": "2A241JEGR06245",
         "name": "com.AndreaBona.Garycom_test",
-        "processId": 6178,
+        "processId": 22126,
         "exited": false
     },
     "m_SelectedPriority": 0,
@@ -66,6 +66,12 @@
             "deviceId": "2A241JEGR06245",
             "name": "com.AndreaBona.Garycom_test",
             "processId": 6178,
+            "exited": false
+        },
+        {
+            "deviceId": "2A241JEGR06245",
+            "name": "com.AndreaBona.Garycom_test",
+            "processId": 22126,
             "exited": false
         }
     ],
