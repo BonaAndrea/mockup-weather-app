@@ -1,0 +1,135 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28a6505f7121d99409df007600406690, type: 3}
+  m_Name: WeatherData
+  m_EditorClassIdentifier: 
+  weatherData:
+  - temperature: 12
+    feels_like: 11
+    main: Clear
+    description: cielo sereno
+    icon: 10d
+  - temperature: 11
+    feels_like: -14
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: -3
+    feels_like: 25
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 18
+    feels_like: 16
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 31
+    feels_like: -18
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 33
+    feels_like: -12
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 21
+    feels_like: 34
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 2
+    feels_like: 7
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 13
+    feels_like: -7
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 34
+    feels_like: 35
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 14
+    feels_like: -17
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 34
+    feels_like: 25
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: -12
+    feels_like: 11
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: -17
+    feels_like: 11
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 5
+    feels_like: 24
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 2
+    feels_like: 9
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 7
+    feels_like: 27
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 29
+    feels_like: 37
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 31
+    feels_like: -3
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 19
+    feels_like: 13
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: -12
+    feels_like: 3
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 32
+    feels_like: 29
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: -7
+    feels_like: -17
+    main: Sereno
+    description: Sereno
+    icon: 10d
+  - temperature: 13
+    feels_like: -16
+    main: Sereno
+    description: Sereno
+    icon: 10d
