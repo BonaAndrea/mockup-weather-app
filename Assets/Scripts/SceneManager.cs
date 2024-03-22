@@ -79,9 +79,16 @@ public class SceneManager : MonoBehaviour
 
     private IEnumerator UpdateHourlyIconValues(HourlyIcon _hourlyIcon, int newTime, Weather weatherData, int minTemp, float temperatureRange)
     {
-        StartCoroutine(ChangeValueOverTime(_hourlyIcon.Hour, newTime, _textAnimationDuration, (int value) => _hourlyIcon.HourText.text = value.ToString("D2") + ":00"));
-        //_hourlyIcons[i].HourText.text = ((currentHour + i) % 24).ToString("D2") + ":00";
-        StartCoroutine(ChangeValueOverTime(_hourlyIcon.Temperature, weatherData.temperature, _textAnimationDuration, (int value) => _hourlyIcon.HourTempText.text = value.ToString() + "°C"));
+        StartCoroutine(ChangeValueOverTime(_hourlyIcon.Hour, newTime, _textAnimationDuration, (int value) =>
+        {
+            _hourlyIcon.Hour = value;
+            _hourlyIcon.HourText.text = value.ToString("D2") + ":00";
+        }));
+        StartCoroutine(ChangeValueOverTime(_hourlyIcon.Temperature, weatherData.temperature, _textAnimationDuration, (int value) =>
+        {
+            _hourlyIcon.Temperature = value;
+            _hourlyIcon.HourTempText.text = value.ToString() + "°C";
+        }));
         StartCoroutine(DownloadImage(CreateSpriteFromTexture, weatherData.icon + "@2x.png",
             _hourlyIcon.Icon, _hourlyIcon.CanvasGroup));
         StartCoroutine(UpdateHourlyColumn(_hourlyIcon.Column.rectTransform,
@@ -167,7 +174,10 @@ public class SceneManager : MonoBehaviour
 
     private void SetMainText()
     {
-        StartCoroutine(ChangeValueOverTime(_currentTempValue, _weatherData.weatherData[0].temperature, _textAnimationDuration, (int value) => _currentTemperature.text = value.ToString() + "°C"));
+        StartCoroutine(ChangeValueOverTime(_currentTempValue, _weatherData.weatherData[0].temperature, _textAnimationDuration, (int value) =>
+        {
+            _currentTemperature.text = value.ToString() + "°C";
+        }));
         _weatherDescription.text = _weatherData.weatherData[0].description;
         StartCoroutine(ChangeValueOverTime(_feelsLikeValue, _weatherData.weatherData[0].temperature, _textAnimationDuration, (int value) => _feels_like.text = "Percepita: " + value.ToString() + "°C"));
     }
@@ -290,10 +300,16 @@ public class SceneManager : MonoBehaviour
     private IEnumerator ChangeValueOverTime(int start, int end, float duration, UnityAction<int> updateAction)
     {
         float elapsedTime = 0f;
-        while (elapsedTime < duration)
+        float current = start;
+        float velocity = 3f;
+        while (current < end)
         {
-            int currentValue = Mathf.RoundToInt(Mathf.Lerp(start, end, elapsedTime / duration));
-            updateAction(currentValue);
+            // V = S/T
+            // S = V * T
+            //current = Mathf.MoveTowards(current, end, Time.deltaTime * velocity);
+            current += Time.deltaTime * velocity * Mathf.Sign(end-start);
+            //int currentValue = Mathf.RoundToInt(Mathf.Lerp(start, end, elapsedTime / duration));
+            updateAction(Mathf.RoundToInt(current));
             elapsedTime += Time.deltaTime;
             yield return null;
         }
