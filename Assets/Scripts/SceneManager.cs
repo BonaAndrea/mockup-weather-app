@@ -9,7 +9,7 @@ using UnityEngine.Events;
 
 public class SceneManager : MonoBehaviour
 {
-    [SerializeField] private string _APIKey = "20f5ff1300c69842c8f2b5a2028fbbac";
+    [SerializeField] private string _APIKey = "";
     [SerializeField] private float _lat = 45.062884f, _lon = 7.679101f;
     [SerializeField] private int _hoursToShow = 24;
     [SerializeField] private float _animationSpeed = 0.1f;
